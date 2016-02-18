@@ -20,7 +20,7 @@ WHERE  u.url &?> Array(
 
 ## 検証スクリプト
 
-* [pgroonga_like_test](https://github.com/hiroyuki-sato/pgroonga_like_test)
+* [postgres_like_test](https://github.com/hiroyuki-sato/postgres_like_test)
 
 ## 必要な環境
 
