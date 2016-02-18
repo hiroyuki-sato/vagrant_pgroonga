@@ -1,0 +1,96 @@
+---
+- hosts: vagrants
+  become: true
+  user: vagrant
+  vars:
+    pgengine: /usr/pgsql-9.5/bin
+    pgport:  5432
+    pgdata: /var/lib/pgsql/9.5/data
+    pglog: /var/lib/pgsql/9.5/pgstartup.log
+    postgres_user_name: groonga_admin
+#    postgres_user_password: password
+    postgres_database_name: groonga_test
+    postgres_database_owner: postgres
+
+  tasks:
+    - name: install postgresql release
+      yum: name=http://yum.postgresql.org/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-2.noarch.rpm
+
+    - name: intall git
+      yum: name={{ item }}
+      with_items:
+        - git
+
+    - name: intall postgresql
+      yum: name={{ item }}
+      with_items:
+        - postgresql95-server
+        - postgresql95-devel
+        - python-psycopg2
+
+    - name: install groonga release
+      yum: name=http://packages.groonga.org/centos/groonga-release-1.1.0-1.noarch.rpm
+
+    - name: install groonga
+      yum: name={{ item }}
+      with_items:
+        - groonga
+        - postgresql95-pgroonga
+
+    - name: install groonga
+      yum: name={{ item }}
+      with_items:
+        - groonga
+        - postgresql95-pgroonga
+
+    - name: postgresql setup
+      shell: su -l postgres -c "{{ pgengine }}/initdb --pgdata={{ pgdata }} --auth='ident' --no-locale --encoding=UTF8" >> "{{ pglog }}" creates={{ pgdata }}/postgresql.conf
+
+    - name: restart postgresql
+      service: name=postgresql-9.5 state=started enabled=yes
+
+    - name: copy postgresql.conf
+      template: src=files/postgresql.conf
+                  dest={{ pgdata }}/postgresql.conf
+                  owner=postgres group=postgres mode=0600
+      notify:
+        - restart postgresql
+
+    - name: copy pg_hba.conf
+      template: src=files/pg_hba.conf
+                dest={{ pgdata }}/pg_hba.conf
+                owner=postgres group=postgres mode=0600
+      notify:
+        - restart postgresql
+
+#    - name: ensure user does not have unnecessary privilege
+#      sudo_user: postgres
+#      postgresql_user: name={{ postgres_user_name }}
+#                       password={{ postgres_user_password }}
+
+    - name: create database
+      sudo_user: postgres
+      postgresql_db: name={{ postgres_database_name }}
+                     encoding='UTF-8'
+                     owner={{ postgres_database_owner }}
+
+    - name: change privileage
+      sudo_user: postgres
+      postgresql_privs: database={{ postgres_database_name }}
+                        privs=ALL
+                        type=database
+                        role={{ postgres_database_owner }}
+
+
+    - name: remove tmp
+      command: '/bin/rm -rf /tmp/postgres_like_test'
+
+    - name: remove tmp
+      command: 'git clone https://github.com/hiroyuki-sato/postgres_like_test /tmp/postgres_like_test'
+
+
+  handlers:
+    - name: restart postgresql
+      service: name=postgresql-9.5 state=started enabled=yes
+
+
