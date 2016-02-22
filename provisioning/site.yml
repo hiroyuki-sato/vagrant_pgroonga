@@ -34,13 +34,13 @@
     - name: install groonga
       yum: name={{ item }}
       with_items:
-        - groonga
-        - postgresql95-pgroonga
+        - "http://packages.groonga.org/tmp/groonga-libs-6.0.0-1.el7.centos.x86_64.rpm"
+        - "http://packages.groonga.org/tmp/groonga-plugin-suggest-6.0.0-1.el7.centos.x86_64.rpm"
+        - "http://packages.groonga.org/tmp/groonga-6.0.0-1.el7.centos.x86_64.rpm"
 
     - name: install groonga
       yum: name={{ item }}
       with_items:
-        - groonga
         - postgresql95-pgroonga
 
     - name: postgresql setup
